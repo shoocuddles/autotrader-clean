@@ -1,40 +1,69 @@
-const express = require('express');
-const cors = require('cors');
-const puppeteer = require('puppeteer-core');
-const { executablePath } = require('puppeteer');
 
+const express = require("express");
+const cors = require("cors");
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const { executablePath } = require("puppeteer");
+
+puppeteer.use(StealthPlugin());
 const app = express();
 app.use(cors());
 
-const urls = [
-  "https://www.autotrader.ca/cars/on/?rcp=15&rcs=0&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Coupe%2CHatchback%2CSedan&hprc=True&wcp=True&inMarket=advancedSearch"
-];
+const SEARCH_URLS = {
+  car: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Coupe%2CHatchback%2CSedan&hprc=True&wcp=True&inMarket=advancedSearch",
+  suv: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=SUV&hprc=True&wcp=True&inMarket=advancedSearch",
+  truck: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Truck&hprc=True&wcp=True&inMarket=advancedSearch",
+  van: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Minivan&hprc=True&wcp=True&inMarket=advancedSearch"
+};
 
-app.get('/scrape', async (req, res) => {
+app.get("/scrape", async (req, res) => {
+  const type = req.query.type || "car";
+  const url = SEARCH_URLS[type.toLowerCase()] || SEARCH_URLS.car;
+
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath: executablePath(),
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
   const page = await browser.newPage();
-  await page.setJavaScriptEnabled(false);
-
   await page.setUserAgent(
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
   );
-  await page.setViewport({ width: 1280, height: 800 });
+  await page.setViewport({ width: 1280, height: 900 });
 
   try {
-    await page.goto(urls[0], { waitUntil: 'load', timeout: 60000 });
-    const rawHtml = await page.content();
-    console.log("=== RAW HTML START ===");
-    console.log(rawHtml.slice(0, 50000));  // Limit for Render logs
-    console.log("=== RAW HTML END ===");
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.waitForSelector(".result-item", { timeout: 15000 });
 
-    res.json({ status: "dumped", length: rawHtml.length });
+    const listings = await page.evaluate(() => {
+      const results = [];
+      const items = document.querySelectorAll(".result-item");
+      for (let el of items) {
+        const title = el.querySelector(".result-title")?.innerText?.trim() || "";
+        const price = el.querySelector(".price-amount")?.innerText?.trim() || "";
+        const location = el.querySelector(".proximity-text")?.innerText?.trim() || "";
+        const odometer = el.querySelector(".kms")?.innerText?.trim() || "";
+
+        const photos = Array.from(el.querySelectorAll("img")).map(img =>
+          (img.src || "").replace(/\.jpg.*$/, ".jpg")
+        ).filter(p => p.includes(".jpg"));
+
+        results.push({
+          title,
+          price,
+          location,
+          odometer,
+          photos: [...new Set(photos)],
+          source: "AutoTrader"
+        });
+      }
+      return results;
+    });
+
+    res.json({ status: "done", count: listings.length, listings });
   } catch (err) {
-    console.error("Failed to dump HTML:", err.message);
+    console.error("Scraping failed:", err.message);
     res.status(500).json({ error: err.message });
   } finally {
     await browser.close();
@@ -43,5 +72,5 @@ app.get('/scrape', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Scraper running on port ${PORT}`);
+  console.log("Scraper running on port", PORT);
 });
