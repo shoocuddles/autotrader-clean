@@ -12,18 +12,35 @@ const urls = [
 
 app.get('/scrape', async (req, res) => {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false, // Force headed mode
     executablePath: executablePath(),
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled'
+    ]
   });
 
   const page = await browser.newPage();
+
+  // Fake a real browser
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+  );
+  await page.setViewport({ width: 1280, height: 800 });
+
   const listings = [];
 
   for (const url of urls) {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Scroll the page to simulate user interaction
+      for (let i = 0; i < 3; i++) {
+        await page.evaluate(() => window.scrollBy(0, window.innerHeight));
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
       const data = await page.evaluate(() => {
         const anchors = Array.from(document.querySelectorAll('a.inner-link'));
