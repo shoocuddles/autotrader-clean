@@ -23,6 +23,20 @@ app.get('/scrape', async (req, res) => {
 
   const page = await browser.newPage();
 
+  // Stealth JS tweaks
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => false,
+    });
+    window.navigator.chrome = { runtime: {} };
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en'],
+    });
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3],
+    });
+  });
+
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
   );
@@ -33,6 +47,18 @@ app.get('/scrape', async (req, res) => {
   for (const url of urls) {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+      // Simulate user interaction
+      await page.evaluate(() => {
+        window.dispatchEvent(new Event('mousemove'));
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('click'));
+        localStorage.setItem('visited', 'true');
+        sessionStorage.setItem('sessionActive', 'yes');
+      });
+
+      // Wait longer for scripts to evaluate and simulate human delay
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       await page.waitForSelector('a.inner-link', { timeout: 15000 });
 
