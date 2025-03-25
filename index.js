@@ -14,28 +14,12 @@ app.get('/scrape', async (req, res) => {
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath: executablePath(),
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-blink-features=AutomationControlled'
-    ]
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
   const page = await browser.newPage();
 
-  // Stealth JS tweaks
-  await page.evaluateOnNewDocument(() => {
-    Object.defineProperty(navigator, 'webdriver', {
-      get: () => false,
-    });
-    window.navigator.chrome = { runtime: {} };
-    Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-US', 'en'],
-    });
-    Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3],
-    });
-  });
+  await page.setJavaScriptEnabled(false); // Disable JS
 
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -46,26 +30,12 @@ app.get('/scrape', async (req, res) => {
 
   for (const url of urls) {
     try {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.goto(url, { waitUntil: 'load', timeout: 60000 });
 
-      // Simulate user interaction
-      await page.evaluate(() => {
-        window.dispatchEvent(new Event('mousemove'));
-        window.dispatchEvent(new Event('scroll'));
-        window.dispatchEvent(new Event('click'));
-        localStorage.setItem('visited', 'true');
-        sessionStorage.setItem('sessionActive', 'yes');
-      });
+      await new Promise(resolve => setTimeout(resolve, 3000)); // let static page finish
 
-      // Wait longer for scripts to evaluate and simulate human delay
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
-      await page.waitForSelector('a.inner-link', { timeout: 15000 });
-
-      for (let i = 0; i < 3; i++) {
-        await page.evaluate(() => window.scrollBy(0, window.innerHeight));
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      const html = await page.content(); // Dump raw HTML
+      console.log("RAW PAGE:", html.slice(0, 1000)); // Log snippet for debugging
 
       const data = await page.evaluate(() => {
         const anchors = Array.from(document.querySelectorAll('a.inner-link'));
