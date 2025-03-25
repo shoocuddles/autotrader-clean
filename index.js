@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const { executablePath } = require('puppeteer');
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ const urls = [
 app.get('/scrape', async (req, res) => {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: executablePath(),
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
