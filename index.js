@@ -1,11 +1,13 @@
-
 const express = require("express");
 const cors = require("cors");
-const puppeteer = require("puppeteer-extra");
+const puppeteer = require("puppeteer-core");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const { executablePath } = require("puppeteer");
+const puppeteerExtra = require("puppeteer-extra");
+const path = require("path");
+const fs = require("fs");
 
-puppeteer.use(StealthPlugin());
+puppeteerExtra.use(StealthPlugin());
+
 const app = express();
 app.use(cors());
 
@@ -16,13 +18,20 @@ const SEARCH_URLS = {
   van: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Minivan&hprc=True&wcp=True&inMarket=advancedSearch"
 };
 
+function findChromeExecutable() {
+  const base = '/opt/render/project/.cache/puppeteer/chrome';
+  const dirs = fs.readdirSync(base);
+  if (!dirs.length) throw new Error("No Chrome installation found.");
+  return path.join(base, dirs[0], 'chrome');
+}
+
 app.get("/scrape", async (req, res) => {
   const type = req.query.type || "car";
   const url = SEARCH_URLS[type.toLowerCase()] || SEARCH_URLS.car;
 
-  const browser = await puppeteer.launch({
-    headless: "new",
-    executablePath: executablePath(),
+  const browser = await puppeteerExtra.launch({
+    headless: true,
+    executablePath: findChromeExecutable(),
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
