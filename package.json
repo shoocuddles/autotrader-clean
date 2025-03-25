@@ -4,7 +4,7 @@
   "description": "Stable Puppeteer scraper for Render",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "PUPPETEER_PRODUCT=chrome node index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
