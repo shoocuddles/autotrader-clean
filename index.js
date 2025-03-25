@@ -10,13 +10,8 @@ const urls = [
 ];
 
 app.get('/scrape', async (req, res) => {
-  const browserFetcher = puppeteer.createBrowserFetcher();
-  const localRevisions = await browserFetcher.localRevisions();
-  const executablePath = browserFetcher.revisionInfo(localRevisions[0]).executablePath;
-
   const browser = await puppeteer.launch({
-    headless: true,
-    executablePath,
+    headless: "new",
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
