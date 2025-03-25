@@ -32,8 +32,9 @@ app.get('/scrape', async (req, res) => {
 
   for (const url of urls) {
     try {
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+      await page.waitForSelector('a.inner-link', { timeout: 15000 });
 
       for (let i = 0; i < 3; i++) {
         await page.evaluate(() => window.scrollBy(0, window.innerHeight));
@@ -54,7 +55,7 @@ app.get('/scrape', async (req, res) => {
 
       listings.push(...data);
     } catch (err) {
-      console.error(`Error scraping ${url}:`, err);
+      console.error(`Error scraping ${url}:`, err.message);
     }
   }
 
