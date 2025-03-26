@@ -1,7 +1,7 @@
 {
   "name": "render-core-configured",
   "version": "1.0.0",
-  "description": "Final Render scraper using chrome-aws-lambda with puppeteer-extra",
+  "description": "Final version with chrome-aws-lambda and puppeteer-extra",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

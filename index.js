@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const puppeteer = require("chrome-aws-lambda");
-const puppeteerExtraLib = require("puppeteer-extra");
-const puppeteerExtra = puppeteerExtraLib(puppeteer);
+const chromium = require("chrome-aws-lambda");
+const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 puppeteerExtra.use(StealthPlugin());
@@ -22,9 +21,9 @@ app.get("/scrape", async (req, res) => {
   const url = SEARCH_URLS[type.toLowerCase()] || SEARCH_URLS.car;
 
   const browser = await puppeteerExtra.launch({
-    args: puppeteer.args,
-    executablePath: await puppeteer.executablePath,
-    headless: puppeteer.headless
+    args: chromium.args,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless
   });
 
   const page = await browser.newPage();
