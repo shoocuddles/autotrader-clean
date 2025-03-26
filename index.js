@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const puppeteer = require("chrome-aws-lambda");
-const puppeteerExtra = require("puppeteer-extra").default(puppeteer);
+const puppeteerExtraLib = require("puppeteer-extra");
+const puppeteerExtra = puppeteerExtraLib(puppeteer);
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 puppeteerExtra.use(StealthPlugin());
