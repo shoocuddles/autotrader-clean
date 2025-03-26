@@ -1,19 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-
 const puppeteer = require("chrome-aws-lambda");
-const puppeteerExtraLib = require("puppeteer-extra");
+const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
-const puppeteerExtra = puppeteerExtraLib.default || puppeteerExtraLib;
 puppeteerExtra.use(StealthPlugin());
-
-// ✅ Force puppeteer-extra to use chrome-aws-lambda even if puppeteer-core is present
-Object.defineProperty(puppeteerExtra, 'puppeteer', {
-  get() {
-    return puppeteer;
-  }
-});
 
 const app = express();
 app.use(cors());
