@@ -19,10 +19,11 @@ const SEARCH_URLS = {
 const launchBrowser = async () => {
   return await puppeteerExtra.launch({
     args: chromium.args,
-    executablePath: await chromium.executablePath || "/usr/bin/chromium-browser",
+    executablePath: await chromium.executablePath ?? undefined,
     headless: chromium.headless
   });
 };
+
 
 app.get("/scrape", async (req, res) => {
   const type = req.query.type || "car";
