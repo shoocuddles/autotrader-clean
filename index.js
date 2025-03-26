@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const puppeteerExtra = require("puppeteer-extra");
+const puppeteer = require("chrome-aws-lambda");
+const puppeteerExtra = require("puppeteer-extra").default(puppeteer);
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const chromium = require("chrome-aws-lambda");
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -16,21 +16,15 @@ const SEARCH_URLS = {
   van: "https://www.autotrader.ca/cars/on/?rcp=30&srt=35&pRng=10000%2C20000&prx=-2&prv=Ontario&loc=K0H2B0&body=Minivan&hprc=True&wcp=True&inMarket=advancedSearch"
 };
 
-const launchBrowser = async () => {
-  const executablePath = await chromium.executablePath;
-  return await puppeteerExtra.launch({
-    args: chromium.args,
-    executablePath: executablePath || undefined,
-    headless: chromium.headless,
-    ignoreDefaultArgs: ['--disable-extensions']
-  });
-};
-
 app.get("/scrape", async (req, res) => {
   const type = req.query.type || "car";
   const url = SEARCH_URLS[type.toLowerCase()] || SEARCH_URLS.car;
 
-  const browser = await launchBrowser();
+  const browser = await puppeteerExtra.launch({
+    args: puppeteer.args,
+    executablePath: await puppeteer.executablePath,
+    headless: puppeteer.headless
+  });
 
   const page = await browser.newPage();
   await page.setUserAgent(
