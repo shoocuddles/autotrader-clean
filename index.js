@@ -1,13 +1,19 @@
 const express = require("express");
 const cors = require("cors");
-const chromium = require("chrome-aws-lambda");
-const puppeteerExtra = require("puppeteer-extra");
+
+const puppeteer = require("chrome-aws-lambda");
+const puppeteerExtraLib = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
-// ✅ Bind puppeteer-extra to chrome-aws-lambda
-puppeteerExtra.puppeteer = chromium;
-
+const puppeteerExtra = puppeteerExtraLib.default || puppeteerExtraLib;
 puppeteerExtra.use(StealthPlugin());
+
+// ✅ Force puppeteer-extra to use chrome-aws-lambda even if puppeteer-core is present
+Object.defineProperty(puppeteerExtra, 'puppeteer', {
+  get() {
+    return puppeteer;
+  }
+});
 
 const app = express();
 app.use(cors());
@@ -24,9 +30,9 @@ app.get("/scrape", async (req, res) => {
   const url = SEARCH_URLS[type.toLowerCase()] || SEARCH_URLS.car;
 
   const browser = await puppeteerExtra.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless
+    args: puppeteer.args,
+    executablePath: await puppeteer.executablePath,
+    headless: puppeteer.headless
   });
 
   const page = await browser.newPage();
