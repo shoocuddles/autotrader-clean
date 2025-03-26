@@ -1,0 +1,16 @@
+{
+  "name": "render-core-configured",
+  "version": "1.0.0",
+  "description": "Render-ready scraper using chrome-aws-lambda and puppeteer-extra",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "chrome-aws-lambda": "^10.1.0"
+  }
+}
