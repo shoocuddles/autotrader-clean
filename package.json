@@ -4,8 +4,9 @@
   "description": "Final scraper with forced binding override for puppeteer-extra",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
-  },
+  "start": "node index.js",
+  "postinstall": "patch-package"
+}
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
     "cors": "^2.8.5",
