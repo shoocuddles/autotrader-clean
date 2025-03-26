@@ -4,6 +4,9 @@ const chromium = require("chrome-aws-lambda");
 const puppeteerExtra = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
+// ✅ Bind puppeteer-extra to chrome-aws-lambda
+puppeteerExtra.puppeteer = chromium;
+
 puppeteerExtra.use(StealthPlugin());
 
 const app = express();
