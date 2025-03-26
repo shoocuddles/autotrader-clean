@@ -1,17 +1,18 @@
 {
   "name": "render-core-configured",
   "version": "1.0.0",
-  "description": "Final scraper with forced binding override for puppeteer-extra",
+  "description": "Final Render scraper with patch-package",
   "main": "index.js",
   "scripts": {
-  "start": "node index.js",
-  "postinstall": "patch-package"
-}
+    "start": "node index.js",
+    "postinstall": "patch-package"
+  },
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "puppeteer-extra": "^3.3.4",
-    "puppeteer-extra-plugin-stealth": "^2.11.1"
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "patch-package": "^6.5.1"
   }
 }
